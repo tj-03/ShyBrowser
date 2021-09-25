@@ -15,9 +15,8 @@ const video = document.getElementById("video")
 async function StartVideo(){
   console.log("Running ...");
   if(navigator.mediaDevices.getUserMedia){
-    var stream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({video:{}});
+      var stream = await navigator.mediaDevices.getUserMedia({video:{}});
     }
     catch(err){
       console.error(err);
