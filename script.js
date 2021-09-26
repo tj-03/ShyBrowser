@@ -1,74 +1,42 @@
-const video = document.getElementById("video")
-//Promise.all([
- // faceapi.nets.tnyFaceDetector.loadFromUri("/models")
-//])
-// function StartVideo() {
-//   console.log("Running")
-//   navigator.mediaDevices.getUserMedia(
-//     { video: true },
-//     stream => video.srcObject = stream,
-//     err => console.error(err)
-//   )
-// }
-//StartVideo()
+const video = document.getElementById('video')
+
+Promise.all([
+  faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+  faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+  faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+  faceapi.nets.faceExpressionNet.loadFromUri('/models')
+]).then(StartVideo)
 
 async function StartVideo(){
-  console.log("Running ...");
-  if(navigator.mediaDevices.getUserMedia){
-    try {
-      var stream = await navigator.mediaDevices.getUserMedia({video:{}});
-    }
-    catch(err){
-      console.error(err);
-      throw err;
-    }
-    video.srcObject = stream;
-  }
-  else{
-    alert("Application requires webcam to run");
-  }
-}
-StartVideo();
+  
+  navigator.getUserMedia(
+    { video: {} },
+    stream => video.srcObject = stream,
+    err => console.log(err)
+  )
 
-
-/*
-<script type="module">
-const videoElement = document.getElementsByClassName('input_video')[0];
-const canvasElement = document.getElementsByClassName('output_canvas')[0];
-const canvasCtx = canvasElement.getContext('2d');
-
-function onResults(results) {
-  canvasCtx.save();
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-  canvasCtx.drawImage(
-      results.image, 0, 0, canvasElement.width, canvasElement.height);
-  if (results.multiHandLandmarks) {
-    for (const landmarks of results.multiHandLandmarks) {
-      drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS,
-                     {color: '#00FF00', lineWidth: 5});
-      drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 2});
-    }
-  }
-  canvasCtx.restore();
+ 
 }
 
-const hands = new Hands({locateFile: (file) => {
-  return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-}});
-hands.setOptions({
-  maxNumHands: 2,
-  minDetectionConfidence: 0.5,
-  minTrackingConfidence: 0.5
-});
-hands.onResults(onResults);
+document.getElementById("toggleVid").onclick = ()=>{
+  chrome.runtime.sendMessage({});
+}
 
-const camera = new Camera(videoElement, {
-  onFrame: async () => {
-    await hands.send({image: videoElement});
-  },
-  width: 1280,
-  height: 720
-});
-camera.start();
-</script>
-*/
+chrome.runtime.connect({ name: "options" });
+
+
+video.addEventListener('play', () => {
+  const canvas = faceapi.createCanvasFromMedia(video)
+  document.body.append(canvas)
+  const displaySize = { width: video.width, height: video.height }
+  faceapi.matchDimensions(canvas, displaySize)
+  setInterval(async () => {
+    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+    if(detections.length>=1){
+      chrome.runtime.sendMessage({});
+    }
+    const resizedDetections = faceapi.resizeResults(detections, displaySize)
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+    faceapi.draw.drawDetections(canvas, resizedDetections)
+  }, 100)
+})
