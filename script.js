@@ -1,5 +1,5 @@
 const video = document.getElementById('video')
-
+HideNum = document.getElementById("NumHide")
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
   faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
@@ -32,7 +32,7 @@ video.addEventListener('play', () => {
   faceapi.matchDimensions(canvas, displaySize)
   setInterval(async () => {
     const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-    if(detections.length>=1){
+    if(HideNum<=detections.length){
       chrome.runtime.sendMessage({});
     }
     const resizedDetections = faceapi.resizeResults(detections, displaySize)
