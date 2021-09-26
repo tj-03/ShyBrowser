@@ -1,5 +1,5 @@
 const video = document.getElementById('video')
-HideNum = document.getElementById("NumHide")
+var HideNum = 3
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
   faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
@@ -17,7 +17,10 @@ async function StartVideo(){
 
  
 }
-
+document.getElementById("SubmitNum").onclick=()=>{
+  HideNum = parseInt(document.getElementById("NumHide"))
+  alert(HideNum)
+}
 document.getElementById("toggleVid").onclick = ()=>{
   chrome.runtime.sendMessage({});
 }
